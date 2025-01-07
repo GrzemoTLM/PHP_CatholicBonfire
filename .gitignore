@@ -1,0 +1,46 @@
+# Ignorowanie katalogu vendor (composer dependencies)
+vendor/
+
+# Ignorowanie cache
+cache/
+tmp/
+temp/
+
+# Ignorowanie konfiguracji IDE
+.idea/
+*.iml
+.vscode/
+
+# Ignorowanie logów i błędów
+*.log
+*.log.*
+
+# Ignorowanie danych sesji
+*.session
+
+# Ignorowanie plików systemowych
+.DS_Store
+Thumbs.db
+
+# Ignorowanie konfiguracji lokalnej
+.env
+.env.*
+
+# Ignorowanie plików testowych generowanych przez PHPUnit
+phpunit.xml
+phpunit.xml.dist
+tests/_output/
+tests/_support/_generated/
+
+# Ignorowanie plików uploadów
+public/uploads/
+uploads/
+
+# Ignorowanie plików Composer lock (jeśli nie chcesz ich śledzić)
+composer.lock
+
+# Ignorowanie plików generowanych przez system
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
