@@ -1,27 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Catholic Campfire</title>
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-<div class="form-container">
-    <h1>Login</h1>
-    <form action="#" method="post">
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
+<?php
+session_start();
+require_once 'db.php';
 
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = trim($_POST['email']);
+    $password = trim($_POST['password']);
 
-        <button type="submit" class="btn">Log in</button>
-    </form>
-    <p>Don't have an account? <a href="register.php">Register</a></p>
-</div>
-<footer class="footer-form">
-    <p>&copy; 2025 Catholic Campfire. All rights reserved.</p>
-</footer>
-</body>
-</html>
+    if (empty($email) || empty($password)) {
+        header('Location: login.html?error=All fields are required.');
+        exit;
+    } else {
+        $db = new Database();
+
+        try {
+
+            $sql = "SELECT * FROM users WHERE email = :email";
+            $stmt = $db->query($sql, ['email' => $email]);
+            $user = $stmt->fetch();
+
+            if ($user && password_verify($password, $user['password'])) {
+
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['role'] = $user['role'];
+                $_SESSION['session_id'] = session_id();
+
+                $insertSql = "REPLACE INTO logged_in_users (sessionId, userId, lastUpdate)
+                              VALUES (:sessionId, :userId, :lastUpdate)";
+                $db->query($insertSql, [
+                    'sessionId' => session_id(),
+                    'userId' => $user['id'],
+                    'lastUpdate' => date('Y-m-d H:i:s')
+                ]);
+
+                header('Location: mainboard.php');
+                exit;
+            } else {
+                header('Location: login.html?error=Incorrect email or password.');
+                exit;
+            }
+        } catch (PDOException $e) {
+            header('Location: login.html?error=An error occurred.');
+            exit;
+        }
+    }
+} else {
+    header('Location: login.html');
+    exit;
+}
+?>
