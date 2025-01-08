@@ -476,3 +476,49 @@ footer {
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+.post-form {
+    background-color: #fff6e7;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.post-form h2 {
+    margin-bottom: 15px;
+    color: #5a4628;
+}
+
+.post-form .input-field,
+.post-form .textarea-field {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.post-form .btn {
+    background-color: #5a4628;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.post-form .btn:hover {
+    background-color: #3f2f1d;
+}
+.main-logo {
+    display: block;
+    margin: 0 auto;
+    max-width: 300px;
+    height: auto;
+    margin-bottom: 20px;
+}
+

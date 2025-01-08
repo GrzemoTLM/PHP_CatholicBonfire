@@ -15,21 +15,20 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
 </head>
 <body>
 <div class="content">
-    <h1>Welcome to Catholic Campfire</h1>
-    <div class="logo-center">
-        <img src="multimedia/logo2.png" alt="Catholic Campfire Logo">
+    <div class="main-logo">
+        <img src="multimedia/logo2.png" alt="Catholic Campfire Logo" class="main-logo">
     </div>
+    <h1>Welcome to Catholic Campfire</h1>
     <p>Choose your destination:</p>
     <div class="button-group">
         <a href="profile.php" class="btn">Your Profile</a>
         <a href="prayer_intentions.php" class="btn">Prayer Intentions</a>
         <a href="logout.php" class="btn btn-danger">Logout</a>
     </div>
-
-
-    <div class="post-creator">
-        <label for="categoryId" class="category-label">Select Category:</label>
-        <div class="custom-select-wrapper">
+    <div class="post-form">
+        <h2>Add a Post</h2>
+        <form id="addPostForm">
+            <label for="categoryId" class="category-label">Select Category:</label>
             <select id="categoryId" class="custom-select">
                 <?php foreach ($categories as $category): ?>
                     <option value="<?= htmlspecialchars($category['id']) ?>">
@@ -37,13 +36,11 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
                     </option>
                 <?php endforeach; ?>
             </select>
-        </div>
-        <input type="text" id="postTitle" placeholder="Enter post title here" class="post-title">
-        <textarea id="postContent" placeholder="Here write what you are thinking about"></textarea>
-        <button class="btn" onclick="submitPost()">Post</button>
+            <input type="text" id="postTitle" placeholder="Enter post title here" class="input-field">
+            <textarea id="postContent" placeholder="Here write what you are thinking about" class="textarea-field"></textarea>
+            <button type="button" class="btn" onclick="submitPost()">Post</button>
+        </form>
     </div>
-
-
     <div class="posts-container">
         <h2>Recent Posts</h2>
         <div id="posts"></div>
@@ -83,7 +80,7 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
                     document.getElementById('postTitle').value = '';
                     document.getElementById('postContent').value = '';
                     document.getElementById('categoryId').value = '1';
-                    loadPosts();w
+                    loadPosts();
                 } else {
                     alert('Error: ' + data.message);
                 }
@@ -93,7 +90,6 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
                 alert('An unexpected error occurred. Check console for details.');
             });
     }
-
 
     function loadPosts() {
         fetch('fetch_posts.php')
