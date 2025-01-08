@@ -1,27 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Catholic Campfire</title>
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-<div class="form-container">
-    <h1>Login</h1>
-    <form action="#" method="post">
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
+<?php
+require_once 'db.php';
 
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
+$error = '';
 
-        <button type="submit" class="btn">Log in</button>
-    </form>
-    <p>Don't have an account? <a href="register.php">Register</a></p>
-</div>
-<footer class="footer-form">
-    <p>&copy; 2025 Catholic Campfire. All rights reserved.</p>
-</footer>
-</body>
-</html>
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = trim($_POST['email']);
+    $password = trim($_POST['password']);
+
+    if (empty($email) || empty($password)) {
+        $error = 'All fields are required.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Invalid email format.';
+    } else {
+        $db = new Database();
+
+        try {
+            $sql = "SELECT * FROM users WHERE email = :email";
+            $stmt = $db->query($sql, ['email' => $email]);
+            $user = $stmt->fetch();
+
+            if ($user && password_verify($password, $user['password'])) {
+                session_start();
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['role'] = $user['role'];
+                header('Location: home.php');
+                exit;
+            } else {
+                $error = 'Incorrect email or password.';
+            }
+        } catch (PDOException $e) {
+            $error = 'An error occurred: ' . $e->getMessage();
+        }
+    }
+}
+?>

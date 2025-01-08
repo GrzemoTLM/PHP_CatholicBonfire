@@ -167,3 +167,14 @@ footer {
     margin-top: 20px;
     box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
 }
+.error-message {
+    color: red;
+    font-size: 1rem;
+    margin-bottom: 15px;
+}
+
+.success-message {
+    color: green;
+    font-size: 1rem;
+    margin-bottom: 15px;
+}
