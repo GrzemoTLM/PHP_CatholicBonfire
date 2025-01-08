@@ -102,31 +102,68 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
                     data.posts.forEach(post => {
                         const postElement = document.createElement('div');
                         postElement.className = 'post';
-
                         postElement.innerHTML = `
-                            <div class="post-header">
-                                <img src="profile_images/${post.profile_image_id}.png" alt="Profile Picture" class="profile-pic">
-                                <div>
-                                    <strong>${post.username}</strong>
-                                    <small>${post.category_name}</small>
-                                </div>
+                        <div class="post-header">
+                            <img src="profile_images/${post.profile_image_id}.png" alt="Profile Picture" class="profile-pic">
+                            <div>
+                                <strong>${post.username}</strong>
+                                <small>${post.category_name}</small>
                             </div>
-                            <div class="post-content">
-                                <h3>${post.title}</h3>
-                                <p>${post.content}</p>
-                                <small>Posted on: ${new Date(post.created_at).toLocaleString()}</small>
+                        </div>
+                        <div class="post-content">
+                            <h3>${post.title}</h3>
+                            <p>${post.content}</p>
+                            <small>Posted on: ${new Date(post.created_at).toLocaleString()}</small>
+                        </div>
+                        <div class="comments">
+                            <h4>Comments</h4>
+                            <div class="comments-list">
+                                ${post.comments.map(comment => `
+                                    <div class="comment">
+                                        <strong>${comment.username}</strong>: ${comment.content}
+                                        <small>${new Date(comment.created_at).toLocaleString()}</small>
+                                    </div>
+                                `).join('')}
                             </div>
-                        `;
-
+                            <textarea id="comment-input-${post.thread_id}" placeholder="Add a comment..." class="comment-input"></textarea>
+                            <button class="btn-small" onclick="submitComment(${post.thread_id})">Comment</button>
+                        </div>
+                    `;
                         postsContainer.appendChild(postElement);
                     });
+                }
+            });
+    }
+
+    function submitComment(postId) {
+        const commentInput = document.getElementById(`comment-input-${postId}`);
+        const commentContent = commentInput.value.trim();
+
+        if (!postId || !commentContent) {
+            alert('Post ID and comment content are required.');
+            return;
+        }
+
+        fetch('add_comment.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `thread_id=${postId}&content=${encodeURIComponent(commentContent)}`
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Comment added successfully!');
+                    commentInput.value = '';
+                    loadPosts();
                 } else {
-                    alert('Error fetching posts: ' + data.message);
+                    alert('Error: ' + data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An unexpected error occurred while fetching posts.');
+                alert('An unexpected error occurred.');
             });
     }
 
