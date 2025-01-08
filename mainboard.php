@@ -16,12 +16,16 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
 <body>
 <div class="content">
     <h1>Welcome to Catholic Campfire</h1>
+    <div class="logo-center">
+        <img src="multimedia/logo2.png" alt="Catholic Campfire Logo">
+    </div>
     <p>Choose your destination:</p>
     <div class="button-group">
         <a href="profile.php" class="btn">Your Profile</a>
-        <a href="prayer_intentions.html" class="btn">Prayer Intentions</a>
+        <a href="prayer_intentions.php" class="btn">Prayer Intentions</a>
         <a href="logout.php" class="btn btn-danger">Logout</a>
     </div>
+
 
     <div class="post-creator">
         <label for="categoryId" class="category-label">Select Category:</label>

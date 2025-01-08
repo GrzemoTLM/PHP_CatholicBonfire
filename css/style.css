@@ -385,4 +385,94 @@ footer {
     background-color: #c9302c;
     transform: scale(1.1);
 }
+.logo-center {
+    text-align: center;
+    margin: 20px 0;
+}
 
+.logo-center img {
+    max-width: 150px;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.intentions-form {
+    background-color: #fff6e7;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.input-field, .textarea-field {
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.textarea-field {
+    height: 100px;
+    resize: none;
+}
+
+.intentions-list {
+    background-color: #fff6e7;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.intention-card {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.intention-card h3 {
+    margin: 0 0 10px;
+    color: #5a4628;
+}
+
+.intention-card p {
+    margin: 0 0 10px;
+    color: #555;
+}
+
+.btn-small {
+    padding: 5px 10px;
+    font-size: 0.9rem;
+    color: #ffffff;
+    background-color: #5a4628;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-small:hover {
+    background-color: #3f2f1d;
+}
+.header-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.header-section h1 {
+    flex: 2;
+    margin: 0;
+}
+
+.header-section .prayer-image {
+    flex: 1;
+    max-width: 150px;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
