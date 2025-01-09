@@ -9,11 +9,6 @@
 <body>
 <div class="form-container">
     <h1>Login</h1>
-    <?php if (!empty($_GET['error'])): ?>
-    <div class="error-message" style="color: red; margin-bottom: 15px;">
-        <?= htmlspecialchars($_GET['error']) ?>
-    </div>
-    <?php endif; ?>
     <form action="login.php" method="post">
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" required>
@@ -28,5 +23,16 @@
 <footer>
     <p>&copy; 2025 Catholic Campfire. All rights reserved.</p>
 </footer>
+
+<script>
+    function getUrlParameter(name) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+    }
+    const errorMessage = getUrlParameter('error');
+    if (errorMessage) {
+        alert(decodeURIComponent(errorMessage));
+    }
+</script>
 </body>
 </html>
