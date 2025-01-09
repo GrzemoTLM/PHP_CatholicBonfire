@@ -9,16 +9,7 @@
 <body>
 <div class="form-container">
     <h1>Register</h1>
-    <?php if (!empty($error)): ?>
-        <div class="error-message" style="color: red; margin-bottom: 15px;">
-            <?= htmlspecialchars($error) ?>
-        </div>
-    <?php elseif (!empty($success)): ?>
-        <div class="success-message" style="color: green; margin-bottom: 15px;">
-            <?= $success ?>
-        </div>
-    <?php endif; ?>
-    <form action="registration.php" method="post">
+    <form action="registration.php" method="POST">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>
 
@@ -35,8 +26,5 @@
     </form>
     <p>Already have an account? <a href="login.html">Log in</a></p>
 </div>
-<footer>
-    <p>&copy; 2025 Catholic Campfire. All rights reserved.</p>
-</footer>
 </body>
 </html>
