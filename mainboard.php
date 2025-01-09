@@ -24,7 +24,13 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
         <a href="profile.php" class="btn">Your Profile</a>
         <a href="prayer_intentions.php" class="btn">Prayer Intentions</a>
         <a href="logout.php" class="btn btn-danger">Logout</a>
+
+        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+            <a href="admin_panel.php" class="btn btn-admin">Admin Panel</a>
+        <?php endif; ?>
     </div>
+
+
     <div class="post-form">
         <h2>Add a Post</h2>
         <form id="addPostForm">

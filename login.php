@@ -13,7 +13,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $db = new Database();
 
         try {
-
             $sql = "SELECT * FROM users WHERE email = :email";
             $stmt = $db->query($sql, ['email' => $email]);
             $user = $stmt->fetch();
@@ -25,12 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['role'] = $user['role'];
                 $_SESSION['session_id'] = session_id();
 
-                $insertSql = "REPLACE INTO logged_in_users (sessionId, userId, lastUpdate)
-                              VALUES (:sessionId, :userId, :lastUpdate)";
+                $insertSql = "REPLACE INTO logged_in_users (sessionId, userId, lastUpdate) 
+                              VALUES (:sessionId, :userId, NOW())";
                 $db->query($insertSql, [
                     'sessionId' => session_id(),
-                    'userId' => $user['id'],
-                    'lastUpdate' => date('Y-m-d H:i:s')
+                    'userId' => $user['id']
                 ]);
 
                 header('Location: mainboard.php');
