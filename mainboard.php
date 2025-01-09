@@ -50,6 +50,22 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
     <p>&copy; 2025 Catholic Campfire. All rights reserved.</p>
 </footer>
 
+<!-- Modal for Editing Posts -->
+<div id="editModal" class="modal-edit">
+    <div class="modal-edit-content">
+        <span class="close-edit" onclick="closeEditModal()">&times;</span>
+        <h2>Edit Post</h2>
+        <form id="editPostForm">
+            <input type="hidden" id="editPostId">
+            <label for="editPostTitle">Title:</label>
+            <input type="text" id="editPostTitle" class="input-edit-field" required>
+            <label for="editPostContent">Content:</label>
+            <textarea id="editPostContent" class="textarea-edit-field" required></textarea>
+            <button type="button" class="btn-edit" onclick="submitEdit()">Save Changes</button>
+        </form>
+    </div>
+</div>
+
 <script>
     function submitPost() {
         const title = document.getElementById('postTitle').value;
@@ -134,6 +150,7 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
                             </div>
                             <textarea placeholder="Add a comment..." class="comment-input" data-thread-id="${post.thread_id}"></textarea>
                             <button class="btn-small" onclick="addComment(${post.thread_id})">Comment</button>
+                            <button class="btn-small btn-edit-post" onclick="openEditModal(${post.id}, '${post.title}', '${post.content}')">Edit</button>
                         </div>
                     `;
                         postsContainer.appendChild(postElement);
@@ -146,29 +163,39 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
             });
     }
 
+    function openEditModal(postId, title, content) {
+        document.getElementById('editModal').style.display = 'flex';
+        document.getElementById('editPostId').value = postId;
+        document.getElementById('editPostTitle').value = title;
+        document.getElementById('editPostContent').value = content;
+    }
 
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
 
-    function submitComment(postId) {
-        const commentInput = document.getElementById(`comment-input-${postId}`);
-        const commentContent = commentInput.value.trim();
+    function submitEdit() {
+        const postId = document.getElementById('editPostId').value;
+        const title = document.getElementById('editPostTitle').value;
+        const content = document.getElementById('editPostContent').value;
 
-        if (!postId || !commentContent) {
-            alert('Post ID and comment content are required.');
+        if (!title.trim() || !content.trim()) {
+            alert('Title and content cannot be empty.');
             return;
         }
 
-        fetch('add_comment.php', {
+        fetch('edit_post.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: `thread_id=${postId}&content=${encodeURIComponent(commentContent)}`
+            body: `id=${postId}&title=${encodeURIComponent(title)}&content=${encodeURIComponent(content)}`
         })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Comment added successfully!');
-                    commentInput.value = '';
+                    alert('Post updated successfully!');
+                    closeEditModal();
                     loadPosts();
                 } else {
                     alert('Error: ' + data.message);
