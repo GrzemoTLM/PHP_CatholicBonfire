@@ -102,6 +102,18 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
                     data.posts.forEach(post => {
                         const postElement = document.createElement('div');
                         postElement.className = 'post';
+
+                        const commentsHTML = post.comments.map(comment => `
+                        <div class="comment">
+                            <div class="comment-details">
+                                <img src="profile_images/${comment.profile_image_id}.png" alt="Profile Picture" class="profile-pic">
+                                <strong class="comment-username">${comment.username}</strong>
+                                <span class="comment-text">${comment.content}</span>
+                            </div>
+                            <span class="comment-date">${new Date(comment.created_at).toLocaleString()}</span>
+                        </div>
+                    `).join('');
+
                         postElement.innerHTML = `
                         <div class="post-header">
                             <img src="profile_images/${post.profile_image_id}.png" alt="Profile Picture" class="profile-pic">
@@ -118,22 +130,23 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
                         <div class="comments">
                             <h4>Comments</h4>
                             <div class="comments-list">
-                                ${post.comments.map(comment => `
-                                    <div class="comment">
-                                        <strong>${comment.username}</strong>: ${comment.content}
-                                        <small>${new Date(comment.created_at).toLocaleString()}</small>
-                                    </div>
-                                `).join('')}
+                                ${commentsHTML}
                             </div>
-                            <textarea id="comment-input-${post.thread_id}" placeholder="Add a comment..." class="comment-input"></textarea>
-                            <button class="btn-small" onclick="submitComment(${post.thread_id})">Comment</button>
+                            <textarea placeholder="Add a comment..." class="comment-input" data-thread-id="${post.thread_id}"></textarea>
+                            <button class="btn-small" onclick="addComment(${post.thread_id})">Comment</button>
                         </div>
                     `;
                         postsContainer.appendChild(postElement);
                     });
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An unexpected error occurred while loading posts.');
             });
     }
+
+
 
     function submitComment(postId) {
         const commentInput = document.getElementById(`comment-input-${postId}`);

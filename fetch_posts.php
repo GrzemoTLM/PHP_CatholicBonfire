@@ -6,40 +6,58 @@ header('Content-Type: application/json');
 try {
     $db = new Database();
 
-    $sql = "SELECT 
-                threads.id AS thread_id, 
-                threads.title, 
-                threads.content, 
-                threads.created_at, 
-                users.username, 
-                users.profile_image_id, 
-                categories.name AS category_name
-            FROM threads
-            JOIN users ON threads.user_id = users.id
-            JOIN categories ON threads.category_id = categories.id
-            ORDER BY threads.created_at DESC";
+    $sql = "
+        SELECT 
+            threads.id AS thread_id,
+            threads.title,
+            threads.content,
+            threads.created_at AS thread_created_at,
+            users.username AS thread_username,
+            users.profile_image_id AS thread_profile_image,
+            categories.name AS category_name,
+            comments.content AS comment_content,
+            comments.created_at AS comment_created_at,
+            comment_users.username AS comment_username,
+            comment_users.profile_image_id AS comment_profile_image
+        FROM threads
+        JOIN users ON threads.user_id = users.id
+        JOIN categories ON threads.category_id = categories.id
+        LEFT JOIN comments ON threads.id = comments.thread_id
+        LEFT JOIN users AS comment_users ON comments.user_id = comment_users.id
+        ORDER BY threads.created_at DESC, comments.created_at ASC
+    ";
 
-    $posts = $db->query($sql)->fetchAll();
+    $rows = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
-    // Pobierz komentarze dla każdego postu
-    foreach ($posts as &$post) {
-        $threadId = $post['thread_id'];
+    $posts = [];
+    foreach ($rows as $row) {
+        $threadId = $row['thread_id'];
 
-        $commentsSql = "SELECT 
-                            comments.id AS comment_id, 
-                            comments.content, 
-                            comments.created_at, 
-                            users.username 
-                        FROM comments
-                        JOIN users ON comments.user_id = users.id
-                        WHERE comments.thread_id = :thread_id
-                        ORDER BY comments.created_at ASC";
+        if (!isset($posts[$threadId])) {
+            $posts[$threadId] = [
+                'thread_id' => $row['thread_id'],
+                'title' => $row['title'],
+                'content' => $row['content'],
+                'created_at' => $row['thread_created_at'],
+                'username' => $row['thread_username'],
+                'profile_image_id' => $row['thread_profile_image'],
+                'category_name' => $row['category_name'],
+                'comments' => []
+            ];
+        }
 
-        $comments = $db->query($commentsSql, ['thread_id' => $threadId])->fetchAll();
-        $post['comments'] = $comments;
+        if (!empty($row['comment_content'])) {
+            $posts[$threadId]['comments'][] = [
+                'content' => $row['comment_content'],
+                'created_at' => $row['comment_created_at'],
+                'username' => $row['comment_username'],
+                'profile_image_id' => $row['comment_profile_image']
+            ];
+        }
     }
 
-    echo json_encode(['success' => true, 'posts' => $posts]);
+    echo json_encode(['success' => true, 'posts' => array_values($posts)]);
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
+?>
