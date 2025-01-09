@@ -35,7 +35,8 @@ try {
 <div class="content">
     <h1>Your Profile</h1>
     <div class="profile-image">
-        <img src="<?= $profileImage ?>" alt="Profile Picture" onclick="openImageSelection()" style="cursor: pointer; width: 150px; border-radius: 50%;">
+        <img src="<?= $profileImage ?>" alt="Profile Picture" onclick="openImageSelection()"
+             style="cursor: pointer; width: 150px; border-radius: 50%;">
     </div>
     <p><strong>Username:</strong> <?= htmlspecialchars($user['username']) ?></p>
     <p><strong>Email:</strong> <?= htmlspecialchars($user['email']) ?></p>
@@ -49,7 +50,8 @@ try {
         <h2>Select Profile Picture</h2>
         <div class="image-grid">
             <?php for ($i = 1; $i <= 10; $i++): ?>
-                <img src="profile_images/<?= $i ?>.png" alt="Image <?= $i ?>" class="profile-option" onclick="updateProfileImage(<?= $i ?>)">
+                <img src="profile_images/<?= $i ?>.png" alt="Image <?= $i ?>" class="profile-option"
+                     onclick="updateProfileImage(<?= $i ?>)">
             <?php endfor; ?>
         </div>
         <button onclick="closeImageSelection()" class="btn">Close</button>
@@ -75,7 +77,7 @@ try {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ image_id: imageId })
+            body: JSON.stringify({image_id: imageId})
         })
             .then(response => response.json())
             .then(data => {

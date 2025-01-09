@@ -25,7 +25,8 @@ require_once 'check_session.php';
         <h2>Add a Prayer Intention</h2>
         <form id="addIntentionForm">
             <input type="text" id="intentionTitle" placeholder="Enter intention title" class="input-field">
-            <textarea id="intentionDescription" placeholder="Describe your intention..." class="textarea-field"></textarea>
+            <textarea id="intentionDescription" placeholder="Describe your intention..."
+                      class="textarea-field"></textarea>
             <button type="button" class="btn" onclick="submitIntention()">Submit</button>
         </form>
     </div>

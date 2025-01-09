@@ -10,6 +10,7 @@ if (!isset($_SESSION['session_id'])) {
 $db = new Database();
 
 try {
+
     $sql = "SELECT * FROM logged_in_users WHERE sessionId = :sessionId";
     $stmt = $db->query($sql, ['sessionId' => $_SESSION['session_id']]);
     $session = $stmt->fetch();
@@ -21,18 +22,15 @@ try {
         exit;
     }
 
-    $updateSql = "UPDATE logged_in_users SET lastUpdate = :lastUpdate WHERE sessionId = :sessionId";
-    $db->query($updateSql, [
-        'lastUpdate' => date('Y-m-d H:i:s'),
-        'sessionId' => $_SESSION['session_id']
-    ]);
+    $updateSql = "UPDATE logged_in_users SET lastUpdate = NOW() WHERE sessionId = :sessionId";
+    $db->query($updateSql, ['sessionId' => $_SESSION['session_id']]);
+
+    $timeout = 30 * 60;
+    $expirationTime = date('Y-m-d H:i:s', time() - $timeout);
+
+    $deleteSql = "DELETE FROM logged_in_users WHERE lastUpdate < :expirationTime";
+    $db->query($deleteSql, ['expirationTime' => $expirationTime]);
 } catch (PDOException $e) {
     die("Error verifying session: " . $e->getMessage());
 }
-$timeout = 30 * 60;
-$expirationTime = date('Y-m-d H:i:s', time() - $timeout);
-
-$sql = "DELETE FROM logged_in_users WHERE lastUpdate < :expirationTime";
-$db->query($sql, ['expirationTime' => $expirationTime]);
-
 ?>

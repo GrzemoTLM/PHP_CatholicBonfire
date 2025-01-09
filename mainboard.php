@@ -24,7 +24,13 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
         <a href="profile.php" class="btn">Your Profile</a>
         <a href="prayer_intentions.php" class="btn">Prayer Intentions</a>
         <a href="logout.php" class="btn btn-danger">Logout</a>
+
+        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+            <a href="admin_panel.php" class="btn btn-admin">Admin Panel</a>
+        <?php endif; ?>
     </div>
+
+
     <div class="post-form">
         <h2>Add a Post</h2>
         <form id="addPostForm">
@@ -37,7 +43,8 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
                 <?php endforeach; ?>
             </select>
             <input type="text" id="postTitle" placeholder="Enter post title here" class="input-field">
-            <textarea id="postContent" placeholder="Here write what you are thinking about" class="textarea-field"></textarea>
+            <textarea id="postContent" placeholder="Here write what you are thinking about"
+                      class="textarea-field"></textarea>
             <button type="button" class="btn" onclick="submitPost()">Post</button>
         </form>
     </div>
@@ -50,7 +57,6 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
     <p>&copy; 2025 Catholic Campfire. All rights reserved.</p>
 </footer>
 
-<!-- Modal for Editing Posts -->
 <div id="editModal" class="modal-edit">
     <div class="modal-edit-content">
         <span class="close-edit" onclick="closeEditModal()">&times;</span>
@@ -150,7 +156,8 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
                             </div>
                             <textarea placeholder="Add a comment..." class="comment-input" data-thread-id="${post.thread_id}"></textarea>
                             <button class="btn-small" onclick="addComment(${post.thread_id})">Comment</button>
-                            <button class="btn-small btn-edit-post" onclick="openEditModal(${post.id}, '${post.title}', '${post.content}')">Edit</button>
+                            <button class="btn-small btn-edit-post" onclick="openEditModal(${post.thread_id}, '${post.title}', '${post.content}')">Edit</button>
+
                         </div>
                     `;
                         postsContainer.appendChild(postElement);
@@ -164,11 +171,13 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
     }
 
     function openEditModal(postId, title, content) {
+        console.log('Post ID:', postId);
         document.getElementById('editModal').style.display = 'flex';
         document.getElementById('editPostId').value = postId;
         document.getElementById('editPostTitle').value = title;
         document.getElementById('editPostContent').value = content;
     }
+
 
     function closeEditModal() {
         document.getElementById('editModal').style.display = 'none';
@@ -179,8 +188,10 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
         const title = document.getElementById('editPostTitle').value;
         const content = document.getElementById('editPostContent').value;
 
-        if (!title.trim() || !content.trim()) {
-            alert('Title and content cannot be empty.');
+        console.log('Sending data:', {postId, title, content});
+
+        if (!postId || !title.trim() || !content.trim()) {
+            alert('All fields are required.');
             return;
         }
 
@@ -193,6 +204,7 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
         })
             .then(response => response.json())
             .then(data => {
+                console.log('Server response:', data);
                 if (data.success) {
                     alert('Post updated successfully!');
                     closeEditModal();
@@ -203,7 +215,38 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An unexpected error occurred.');
+            });
+    }
+
+    function addComment(threadId) {
+        const textarea = document.querySelector(`textarea[data-thread-id="${threadId}"]`);
+        const content = textarea.value.trim();
+
+        if (!content) {
+            alert('Comment content cannot be empty.');
+            return;
+        }
+
+        fetch('add_comment.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `thread_id=${encodeURIComponent(threadId)}&content=${encodeURIComponent(content)}`
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Comment added successfully!');
+                    textarea.value = '';
+                    loadPosts();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An unexpected error occurred. Please try again.');
             });
     }
 
