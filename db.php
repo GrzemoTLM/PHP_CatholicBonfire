@@ -24,6 +24,7 @@ class Database
     {
         return $this->pdo;
     }
+
     public function query($sql, $params = [])
     {
         try {
@@ -32,6 +33,15 @@ class Database
             return $stmt;
         } catch (PDOException $e) {
             die("Query failed: " . $e->getMessage());
+        }
+    }
+
+    public function prepare($sql)
+    {
+        try {
+            return $this->pdo->prepare($sql);
+        } catch (PDOException $e) {
+            die("Prepare failed: " . $e->getMessage());
         }
     }
 }
