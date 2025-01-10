@@ -1,11 +1,11 @@
 <?php
 class Database
 {
-    private $host = 'sql7.freemysqlhosting.net';
-    private $dbname = 'sql7755539';
-    private $username = 'sql7755539';
-    private $password = 'RcAWrFZWHs';
-    private $port = 3306;
+    private $host = 'localhost'; // Lokalny host
+    private $dbname = 'forumkatolickie'; // Nazwa lokalnej bazy danych
+    private $username = 'root'; // Nazwa użytkownika bazy danych
+    private $password = ''; // Hasło do bazy danych
+    private $port = 3306; // Port, domyślnie 3306
     private $pdo;
 
     public function __construct()
@@ -44,5 +44,13 @@ class Database
             die("Prepare failed: " . $e->getMessage());
         }
     }
+}
+
+// Test połączenia
+try {
+    $db = new Database();
+    $connection = $db->getConnection();
+
+} catch (Exception $e) {
 }
 ?>
