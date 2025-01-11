@@ -1,37 +1,39 @@
 <?php
 require_once 'check_session.php';
-require_once 'db.php';
+require_once 'AdminPanel.php';
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header('Location: mainboard.php');
     exit;
 }
 
-$db = new Database();
-$sqlLoggedUsers = "
-    SELECT users.id AS user_id, users.username, users.email, logged_in_users.lastUpdate, logged_in_users.sessionId
-    FROM logged_in_users
-    JOIN users ON logged_in_users.userId = users.id
-    ORDER BY logged_in_users.lastUpdate DESC
-";
-$loggedUsers = $db->query($sqlLoggedUsers)->fetchAll();
-$sqlPosts = "
-    SELECT threads.id AS thread_id, threads.title, threads.content, threads.created_at, 
-           users.username AS author
-    FROM threads
-    JOIN users ON threads.user_id = users.id
-    ORDER BY threads.created_at DESC
-";
-$posts = $db->query($sqlPosts)->fetchAll();
-$sqlComments = "
-    SELECT comments.id AS comment_id, comments.content, comments.created_at, 
-           users.username AS author, threads.title AS post_title
-    FROM comments
-    JOIN users ON comments.user_id = users.id
-    JOIN threads ON comments.thread_id = threads.id
-    ORDER BY comments.created_at DESC
-";
-$comments = $db->query($sqlComments)->fetchAll();
+// Obsługa akcji POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $action = $_POST['action'];
+
+    $adminPanel = new AdminPanel();
+
+    if ($action === 'changeUserRole') {
+        $userId = intval($_POST['userId'] ?? 0);
+        $newRole = $_POST['newRole'] ?? '';
+
+        if ($userId && !empty($newRole)) {
+            $response = $adminPanel->changeUserRole($userId, $newRole);
+            header('Content-Type: application/json');
+            echo json_encode($response);
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Invalid input.']);
+        }
+        exit;
+    }
+}
+
+// Pobieranie danych do wyświetlenia panelu
+$adminPanel = new AdminPanel();
+$loggedUsers = $adminPanel->getLoggedUsers();
+$posts = $adminPanel->getAllPosts();
+$comments = $adminPanel->getAllComments();
 ?>
 
 <!DOCTYPE html>
@@ -40,6 +42,7 @@ $comments = $db->query($sqlComments)->fetchAll();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
+    <link rel="stylesheet" href="css/style.css">
     <script>
         function logoutUser(sessionId) {
             if (confirm("Are you sure you want to log out this user?")) {
@@ -94,6 +97,37 @@ $comments = $db->query($sqlComments)->fetchAll();
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                     body: `commentId=${encodeURIComponent(commentId)}`
                 })
+                    .then(response => response.text())
+                    .then(data => {
+                        console.log('Response from server:', data);
+                        try {
+                            const jsonData = JSON.parse(data);
+                            if (jsonData.success) {
+                                alert(jsonData.message);
+                                location.reload();
+                            } else {
+                                alert(jsonData.message);
+                            }
+                        } catch (e) {
+                            console.error('Error parsing JSON:', e, data);
+                            alert('An unexpected error occurred. Check console for details.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while deleting the comment.');
+                    });
+            }
+        }
+
+
+        function changeUserRole(userId, newRole) {
+            if (confirm(`Are you sure you want to change the role of this user to ${newRole}?`)) {
+                fetch('admin_panel.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `action=changeUserRole&userId=${encodeURIComponent(userId)}&newRole=${encodeURIComponent(newRole)}`
+                })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -105,7 +139,7 @@ $comments = $db->query($sqlComments)->fetchAll();
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        alert('An error occurred while deleting the comment.');
+                        alert('An error occurred while changing the user role.');
                     });
             }
         }
@@ -121,6 +155,7 @@ $comments = $db->query($sqlComments)->fetchAll();
         <th>ID</th>
         <th>Username</th>
         <th>Email</th>
+        <th>Role</th>
         <th>Last Active</th>
         <th>Action</th>
     </tr>
@@ -131,9 +166,12 @@ $comments = $db->query($sqlComments)->fetchAll();
             <td><?= htmlspecialchars($user['user_id']) ?></td>
             <td><?= htmlspecialchars($user['username']) ?></td>
             <td><?= htmlspecialchars($user['email']) ?></td>
+            <td><?= htmlspecialchars($user['role'] ?? 'user') ?></td>
             <td><?= htmlspecialchars($user['lastUpdate']) ?></td>
             <td>
-                <button onclick="logoutUser('<?= htmlspecialchars($user['sessionId']) ?>')">WYLOGUJ</button>
+                <button onclick="logoutUser('<?= htmlspecialchars($user['sessionId']) ?>')">Log Out</button>
+                <button onclick="changeUserRole(<?= $user['user_id'] ?>, 'admin')">Make Admin</button>
+                <button onclick="changeUserRole(<?= $user['user_id'] ?>, 'user')">Make User</button>
             </td>
         </tr>
     <?php endforeach; ?>
@@ -158,10 +196,10 @@ $comments = $db->query($sqlComments)->fetchAll();
             <td><?= htmlspecialchars($post['thread_id']) ?></td>
             <td><?= htmlspecialchars($post['title']) ?></td>
             <td><?= htmlspecialchars($post['content']) ?></td>
-            <td><?= htmlspecialchars($post['author']) ?></td>
+            <td><?= htmlspecialchars($post['username']) ?></td>
             <td><?= htmlspecialchars($post['created_at']) ?></td>
             <td>
-                <button onclick="deletePost('<?= htmlspecialchars($post['thread_id']) ?>')">USUŃ</button>
+                <button onclick="deletePost('<?= htmlspecialchars($post['thread_id']) ?>')">Delete</button>
             </td>
         </tr>
     <?php endforeach; ?>
@@ -185,11 +223,11 @@ $comments = $db->query($sqlComments)->fetchAll();
         <tr>
             <td><?= htmlspecialchars($comment['comment_id']) ?></td>
             <td><?= htmlspecialchars($comment['content']) ?></td>
-            <td><?= htmlspecialchars($comment['author']) ?></td>
-            <td><?= htmlspecialchars($comment['post_title']) ?></td>
+            <td><?= htmlspecialchars($comment['username']) ?></td>
+            <td><?= htmlspecialchars($comment['post_title'] ?? 'Unknown') ?></td>
             <td><?= htmlspecialchars($comment['created_at']) ?></td>
             <td>
-                <button onclick="deleteComment('<?= htmlspecialchars($comment['comment_id']) ?>')">USUŃ</button>
+                <button onclick="deleteComment('<?= htmlspecialchars($comment['comment_id']) ?>')">Delete</button>
             </td>
         </tr>
     <?php endforeach; ?>
