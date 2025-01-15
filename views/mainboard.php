@@ -1,7 +1,7 @@
 <?php
-require_once 'check_session.php';
-require_once 'Threads.php';
-require_once 'Comments.php';
+require_once '../functions/check_session.php';
+require_once '../classes/Threads.php';
+require_once '../classes/Comments.php';
 
 $db = Database::getInstance()->getConnection();
 $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
@@ -18,19 +18,19 @@ $posts = $postsResponse['success'] ? $postsResponse['posts'] : [];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main Board - Catholic Campfire</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 <div class="content">
     <div class="main-logo">
-        <img src="multimedia/logo2.png" alt="Catholic Campfire Logo" class="main-logo">
+        <img src="../multimedia/logo2.png" alt="Catholic Campfire Logo" class="main-logo">
     </div>
     <h1>Welcome to Catholic Campfire</h1>
     <p>Choose your destination:</p>
     <div class="button-group">
         <a href="profil.php" class="btn">Your Profile</a>
         <a href="prayer_intentions.php" class="btn">Prayer Intentions</a>
-        <a href="logout.php" class="btn btn-danger">Logout</a>
+        <a href="../functions/logout.php" class="btn btn-danger">Logout</a>
 
         <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
             <a href="admin_panel.php" class="btn btn-admin">Admin Panel</a>
@@ -60,7 +60,7 @@ $posts = $postsResponse['success'] ? $postsResponse['posts'] : [];
             <?php foreach ($posts as $post): ?>
                 <div class="post">
                     <div class="post-header">
-                        <img src="profile_images/<?= htmlspecialchars($post['profile_image_id']) ?>.png" alt="Profile Picture" class="profile-pic">
+                        <img src="../profile_images/<?= htmlspecialchars($post['profile_image_id']) ?>.png" alt="Profile Picture" class="profile-pic">
                         <div>
                             <strong><?= htmlspecialchars($post['username']) ?></strong>
                             <small><?= htmlspecialchars($post['category_name']) ?></small>
@@ -77,7 +77,7 @@ $posts = $postsResponse['success'] ? $postsResponse['posts'] : [];
                             <?php foreach ($post['comments'] as $comment): ?>
                                 <div class="comment">
                                     <div class="comment-details">
-                                        <img src="profile_images/<?= htmlspecialchars($comment['profile_image_id']) ?>.png" alt="Profile Picture" class="profile-pic">
+                                        <img src="../profile_images/<?= htmlspecialchars($comment['profile_image_id']) ?>.png" alt="Profile Picture" class="profile-pic">
                                         <strong class="comment-username"><?= htmlspecialchars($comment['username']) ?></strong>
                                         <span class="comment-text"><?= htmlspecialchars($comment['content']) ?></span>
                                     </div>
@@ -87,15 +87,34 @@ $posts = $postsResponse['success'] ? $postsResponse['posts'] : [];
                         </div>
                         <textarea placeholder="Add a comment..." class="comment-input" data-thread-id="<?= $post['thread_id'] ?>"></textarea>
                         <button class="btn-small" onclick="addComment(<?= $post['thread_id'] ?>)">Comment</button>
+                        <button class="btn-small" onclick="openEditModal(<?= $post['thread_id'] ?>, '<?= htmlspecialchars($post['title'], ENT_QUOTES) ?>', '<?= htmlspecialchars($post['content'], ENT_QUOTES) ?>')">Edit</button>
                     </div>
                 </div>
             <?php endforeach; ?>
         </div>
     </div>
 </div>
+
+<!-- Modal for Editing Post -->
+<div id="editModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <h2>Edit Post</h2>
+        <form id="editPostForm">
+            <input type="hidden" id="editPostId">
+            <label for="editPostTitle">Title:</label>
+            <input type="text" id="editPostTitle" class="input-field">
+            <label for="editPostContent">Content:</label>
+            <textarea id="editPostContent" class="textarea-field"></textarea>
+            <button type="button" class="btn" onclick="submitEdit()">Save Changes</button>
+        </form>
+    </div>
+</div>
+
 <footer>
     <p>&copy; 2025 Catholic Campfire. All rights reserved.</p>
 </footer>
+
 <script>
     function submitPost() {
         const title = document.getElementById('postTitle').value;
@@ -112,7 +131,7 @@ $posts = $postsResponse['success'] ? $postsResponse['posts'] : [];
             return;
         }
 
-        fetch('create_post.php', {
+        fetch('../functions/create_post.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -143,7 +162,7 @@ $posts = $postsResponse['success'] ? $postsResponse['posts'] : [];
             return;
         }
 
-        fetch('add_comment.php', {
+        fetch('../functions/add_comment.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -154,6 +173,50 @@ $posts = $postsResponse['success'] ? $postsResponse['posts'] : [];
             .then(data => {
                 if (data.success) {
                     alert('Comment added successfully!');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An unexpected error occurred. Please try again.');
+            });
+    }
+
+    function openEditModal(postId, title, content) {
+        document.getElementById('editModal').style.display = 'block';
+        document.getElementById('editPostId').value = postId;
+        document.getElementById('editPostTitle').value = title;
+        document.getElementById('editPostContent').value = content;
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    function submitEdit() {
+        const postId = document.getElementById('editPostId').value;
+        const title = document.getElementById('editPostTitle').value;
+        const content = document.getElementById('editPostContent').value;
+
+        if (!title.trim() || !content.trim()) {
+            alert('All fields are required.');
+            return;
+        }
+
+        fetch('../functions/edit_post.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `id=${postId}&title=${encodeURIComponent(title)}&content=${encodeURIComponent(content)}`
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Post updated successfully!');
+                    closeEditModal();
                     location.reload();
                 } else {
                     alert('Error: ' + data.message);

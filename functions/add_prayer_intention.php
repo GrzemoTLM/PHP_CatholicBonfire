@@ -1,6 +1,6 @@
 <?php
-require_once 'check_session.php';
-require_once 'Intentions.php';
+require_once '../functions/check_session.php';
+require_once '../classes/Intentions.php';
 
 header('Content-Type: application/json');
 

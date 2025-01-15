@@ -1,5 +1,5 @@
 <?php
-require_once 'User.php';
+require_once '../classes/User.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $response = $user->register($username, $email, $password, $confirm_password);
 
     if ($response['success']) {
-        header("Location: register.html?success=" . urlencode($response['message']));
+        header("Location: ../views/login.html?success=" . urlencode($response['message']));
     } else {
         header("Location: register.html?error=" . urlencode($response['message']));
     }

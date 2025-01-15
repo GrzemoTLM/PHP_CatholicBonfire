@@ -1,6 +1,6 @@
 <?php
-require_once 'check_session.php';
-require_once 'AdminPanel.php';
+require_once '../functions/check_session.php';
+require_once '../classes/AdminPanel.php';
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header('Location: mainboard.php');
@@ -55,11 +55,11 @@ $intentions = $adminPanel->getAllIntentions();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
     <script>
         function logoutUser(sessionId) {
             if (confirm("Are you sure you want to log out this user?")) {
-                fetch('logout_user.php', {
+                fetch('../functions/logout_user.php', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                     body: `sessionId=${encodeURIComponent(sessionId)}`
@@ -82,7 +82,7 @@ $intentions = $adminPanel->getAllIntentions();
 
         function deletePost(postId) {
             if (confirm("Are you sure you want to delete this post?")) {
-                fetch('delete_post.php', {
+                fetch('../functions/delete_post.php', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                     body: `postId=${encodeURIComponent(postId)}`
@@ -105,7 +105,7 @@ $intentions = $adminPanel->getAllIntentions();
 
         function deleteComment(commentId) {
             if (confirm("Are you sure you want to delete this comment?")) {
-                fetch('delete_comment.php', {
+                fetch('../functions/delete_comment.php', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                     body: `commentId=${encodeURIComponent(commentId)}`

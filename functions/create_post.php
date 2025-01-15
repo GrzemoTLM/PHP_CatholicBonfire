@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'Threads.php';
+require_once '../classes/Threads.php';
 
 header('Content-Type: application/json');
 

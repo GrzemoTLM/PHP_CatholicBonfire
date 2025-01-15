@@ -1,5 +1,5 @@
 <?php
-require_once 'Comments.php';
+require_once '../classes/Comments.php';
 session_start();
 
 header('Content-Type: application/json');

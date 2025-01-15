@@ -29,7 +29,8 @@ class User
         }
 
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $insertSql = "INSERT INTO users (username, email, password, created_at) VALUES (:username, :email, :password, NOW())";
+        $insertSql = "INSERT INTO users (username, email, password, profile_image_id, created_at) 
+                      VALUES (:username, :email, :password, 1, NOW())";
         $stmt = $this->db->prepare($insertSql);
         $stmt->execute([
             'username' => $username,
