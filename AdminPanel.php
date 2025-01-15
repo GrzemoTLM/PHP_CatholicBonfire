@@ -53,6 +53,22 @@ class AdminPanel
         return $comments;
     }
 
+    public function getAllIntentions()
+    {
+        $sql = "
+            SELECT intentions.id, intentions.title, intentions.description, intentions.created_at,
+                   users.username
+            FROM intentions
+            JOIN users ON intentions.user_id = users.id
+            ORDER BY intentions.created_at DESC
+        ";
+        try {
+            return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            return [];
+        }
+    }
+
     public function changeUserRole($userId, $newRole)
     {
         $validRoles = ['user', 'admin'];
@@ -69,6 +85,23 @@ class AdminPanel
             return ['success' => true, 'message' => 'User role updated successfully.'];
         } catch (PDOException $e) {
             return ['success' => false, 'message' => 'Failed to update user role: ' . $e->getMessage()];
+        }
+    }
+
+    public function deleteIntention($intentionId)
+    {
+        try {
+            $sql = "DELETE FROM intentions WHERE id = :id";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute(['id' => $intentionId]);
+
+            $sqlLikes = "DELETE FROM intention_likes WHERE intention_id = :id";
+            $stmt = $this->db->prepare($sqlLikes);
+            $stmt->execute(['id' => $intentionId]);
+
+            return ['success' => true, 'message' => 'Intention deleted successfully.'];
+        } catch (PDOException $e) {
+            return ['success' => false, 'message' => 'Failed to delete intention: ' . $e->getMessage()];
         }
     }
 }

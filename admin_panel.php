@@ -7,7 +7,6 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
-// Obsługa akcji POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
 
@@ -27,13 +26,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
         exit;
     }
+
+    if ($action === 'deleteIntention') {
+        $intentionId = intval($_POST['intentionId'] ?? 0);
+
+        if ($intentionId) {
+            $response = $adminPanel->deleteIntention($intentionId);
+            header('Content-Type: application/json');
+            echo json_encode($response);
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Invalid intention ID.']);
+        }
+        exit;
+    }
 }
 
-// Pobieranie danych do wyświetlenia panelu
 $adminPanel = new AdminPanel();
 $loggedUsers = $adminPanel->getLoggedUsers();
 $posts = $adminPanel->getAllPosts();
 $comments = $adminPanel->getAllComments();
+$intentions = $adminPanel->getAllIntentions();
 ?>
 
 <!DOCTYPE html>
@@ -97,20 +110,13 @@ $comments = $adminPanel->getAllComments();
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                     body: `commentId=${encodeURIComponent(commentId)}`
                 })
-                    .then(response => response.text())
+                    .then(response => response.json())
                     .then(data => {
-                        console.log('Response from server:', data);
-                        try {
-                            const jsonData = JSON.parse(data);
-                            if (jsonData.success) {
-                                alert(jsonData.message);
-                                location.reload();
-                            } else {
-                                alert(jsonData.message);
-                            }
-                        } catch (e) {
-                            console.error('Error parsing JSON:', e, data);
-                            alert('An unexpected error occurred. Check console for details.');
+                        if (data.success) {
+                            alert(data.message);
+                            location.reload();
+                        } else {
+                            alert(data.message);
                         }
                     })
                     .catch(error => {
@@ -119,7 +125,6 @@ $comments = $adminPanel->getAllComments();
                     });
             }
         }
-
 
         function changeUserRole(userId, newRole) {
             if (confirm(`Are you sure you want to change the role of this user to ${newRole}?`)) {
@@ -140,6 +145,29 @@ $comments = $adminPanel->getAllComments();
                     .catch(error => {
                         console.error('Error:', error);
                         alert('An error occurred while changing the user role.');
+                    });
+            }
+        }
+
+        function deleteIntention(intentionId) {
+            if (confirm("Are you sure you want to delete this intention?")) {
+                fetch('admin_panel.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `action=deleteIntention&intentionId=${encodeURIComponent(intentionId)}`
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            location.reload();
+                        } else {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while deleting the intention.');
                     });
             }
         }
@@ -228,6 +256,34 @@ $comments = $adminPanel->getAllComments();
             <td><?= htmlspecialchars($comment['created_at']) ?></td>
             <td>
                 <button onclick="deleteComment('<?= htmlspecialchars($comment['comment_id']) ?>')">Delete</button>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+    </tbody>
+</table>
+
+<h2>All Prayer Intentions</h2>
+<table border="1">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Author</th>
+        <th>Created At</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($intentions as $intention): ?>
+        <tr>
+            <td><?= htmlspecialchars($intention['id']) ?></td>
+            <td><?= htmlspecialchars($intention['title']) ?></td>
+            <td><?= htmlspecialchars($intention['description']) ?></td>
+            <td><?= htmlspecialchars($intention['username']) ?></td>
+            <td><?= htmlspecialchars($intention['created_at']) ?></td>
+            <td>
+                <button onclick="deleteIntention(<?= htmlspecialchars($intention['id']) ?>)">Delete</button>
             </td>
         </tr>
     <?php endforeach; ?>
