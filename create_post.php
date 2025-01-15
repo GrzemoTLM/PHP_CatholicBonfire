@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'db.php';
+require_once 'Threads.php';
 
 header('Content-Type: application/json');
 
@@ -15,33 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    if (empty($title)) {
-        echo json_encode(['success' => false, 'message' => 'Post title cannot be empty.']);
-        exit;
-    }
+    $threads = new Threads();
+    $response = $threads->createPost($userId, $categoryId, $title, $content);
 
-    if (empty($content)) {
-        echo json_encode(['success' => false, 'message' => 'Post content cannot be empty.']);
-        exit;
-    }
-
-    $db = new Database();
-
-    try {
-        $sql = "INSERT INTO threads (user_id, category_id, title, content, created_at) 
-                VALUES (:userId, :categoryId, :title, :content, NOW())";
-        $db->query($sql, [
-            'userId' => $userId,
-            'categoryId' => $categoryId,
-            'title' => $title,
-            'content' => $content
-        ]);
-
-        echo json_encode(['success' => true]);
-    } catch (PDOException $e) {
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-    }
-} else {
-    echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
+    echo json_encode($response);
 }
 ?>

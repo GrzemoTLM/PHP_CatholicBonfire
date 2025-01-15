@@ -1,34 +1,26 @@
 <?php
 require_once 'check_session.php';
-require_once 'db.php';
+require_once 'Comments.php';
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized access.']);
-    exit;
-}
+header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $commentId = $_POST['commentId'] ?? null;
+    $commentId = intval($_POST['commentId'] ?? 0);
+    $userId = $_SESSION['user_id'] ?? null;
+    $isAdmin = $_SESSION['role'] === 'admin';
 
     if (!$commentId) {
         echo json_encode(['success' => false, 'message' => 'Comment ID is required.']);
         exit;
     }
 
-    try {
-        $db = new Database();
-        $sql = "DELETE FROM comments WHERE id = :id";
-        $stmt = $db->prepare($sql);
-        $stmt->bindValue(':id', $commentId, PDO::PARAM_INT);
-        $stmt->execute();
+    $comments = new Comments();
+    $response = $comments->deleteComment($commentId, $userId, $isAdmin);
 
-        if ($stmt->rowCount() > 0) {
-            echo json_encode(['success' => true, 'message' => 'Comment successfully deleted.']);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Comment not found or already deleted.']);
-        }
-    } catch (PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()]);
-    }
+    echo json_encode($response);
+    exit;
+} else {
+    echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
+    exit;
 }
 ?>

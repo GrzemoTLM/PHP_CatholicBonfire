@@ -1,9 +1,16 @@
 <?php
 require_once 'check_session.php';
-require_once 'db.php';
+require_once 'Threads.php';
+require_once 'Comments.php';
 
-$db = new Database();
+$db = Database::getInstance()->getConnection();
 $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
+
+$threads = new Threads();
+$comments = new Comments();
+
+$postsResponse = $threads->fetchPosts();
+$posts = $postsResponse['success'] ? $postsResponse['posts'] : [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -21,7 +28,7 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
     <h1>Welcome to Catholic Campfire</h1>
     <p>Choose your destination:</p>
     <div class="button-group">
-        <a href="profile.php" class="btn">Your Profile</a>
+        <a href="profil.php" class="btn">Your Profile</a>
         <a href="prayer_intentions.php" class="btn">Prayer Intentions</a>
         <a href="logout.php" class="btn btn-danger">Logout</a>
 
@@ -29,7 +36,6 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
             <a href="admin_panel.php" class="btn btn-admin">Admin Panel</a>
         <?php endif; ?>
     </div>
-
 
     <div class="post-form">
         <h2>Add a Post</h2>
@@ -43,35 +49,53 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
                 <?php endforeach; ?>
             </select>
             <input type="text" id="postTitle" placeholder="Enter post title here" class="input-field">
-            <textarea id="postContent" placeholder="Here write what you are thinking about"
-                      class="textarea-field"></textarea>
+            <textarea id="postContent" placeholder="Here write what you are thinking about" class="textarea-field"></textarea>
             <button type="button" class="btn" onclick="submitPost()">Post</button>
         </form>
     </div>
+
     <div class="posts-container">
         <h2>Recent Posts</h2>
-        <div id="posts"></div>
+        <div id="posts">
+            <?php foreach ($posts as $post): ?>
+                <div class="post">
+                    <div class="post-header">
+                        <img src="profile_images/<?= htmlspecialchars($post['profile_image_id']) ?>.png" alt="Profile Picture" class="profile-pic">
+                        <div>
+                            <strong><?= htmlspecialchars($post['username']) ?></strong>
+                            <small><?= htmlspecialchars($post['category_name']) ?></small>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        <h3><?= htmlspecialchars($post['title']) ?></h3>
+                        <p><?= htmlspecialchars($post['content']) ?></p>
+                        <small>Posted on: <?= htmlspecialchars(date('Y-m-d H:i:s', strtotime($post['created_at']))) ?></small>
+                    </div>
+                    <div class="comments">
+                        <h4>Comments</h4>
+                        <div class="comments-list">
+                            <?php foreach ($post['comments'] as $comment): ?>
+                                <div class="comment">
+                                    <div class="comment-details">
+                                        <img src="profile_images/<?= htmlspecialchars($comment['profile_image_id']) ?>.png" alt="Profile Picture" class="profile-pic">
+                                        <strong class="comment-username"><?= htmlspecialchars($comment['username']) ?></strong>
+                                        <span class="comment-text"><?= htmlspecialchars($comment['content']) ?></span>
+                                    </div>
+                                    <span class="comment-date"><?= htmlspecialchars(date('Y-m-d H:i:s', strtotime($comment['created_at']))) ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <textarea placeholder="Add a comment..." class="comment-input" data-thread-id="<?= $post['thread_id'] ?>"></textarea>
+                        <button class="btn-small" onclick="addComment(<?= $post['thread_id'] ?>)">Comment</button>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
     </div>
 </div>
 <footer>
     <p>&copy; 2025 Catholic Campfire. All rights reserved.</p>
 </footer>
-
-<div id="editModal" class="modal-edit">
-    <div class="modal-edit-content">
-        <span class="close-edit" onclick="closeEditModal()">&times;</span>
-        <h2>Edit Post</h2>
-        <form id="editPostForm">
-            <input type="hidden" id="editPostId">
-            <label for="editPostTitle">Title:</label>
-            <input type="text" id="editPostTitle" class="input-edit-field" required>
-            <label for="editPostContent">Content:</label>
-            <textarea id="editPostContent" class="textarea-edit-field" required></textarea>
-            <button type="button" class="btn-edit" onclick="submitEdit()">Save Changes</button>
-        </form>
-    </div>
-</div>
-
 <script>
     function submitPost() {
         const title = document.getElementById('postTitle').value;
@@ -99,10 +123,7 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
             .then(data => {
                 if (data.success) {
                     alert('Post created successfully!');
-                    document.getElementById('postTitle').value = '';
-                    document.getElementById('postContent').value = '';
-                    document.getElementById('categoryId').value = '1';
-                    loadPosts();
+                    location.reload();
                 } else {
                     alert('Error: ' + data.message);
                 }
@@ -110,111 +131,6 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
             .catch(error => {
                 console.error('Error:', error);
                 alert('An unexpected error occurred. Check console for details.');
-            });
-    }
-
-    function loadPosts() {
-        fetch('fetch_posts.php')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const postsContainer = document.getElementById('posts');
-                    postsContainer.innerHTML = '';
-
-                    data.posts.forEach(post => {
-                        const postElement = document.createElement('div');
-                        postElement.className = 'post';
-
-                        const commentsHTML = post.comments.map(comment => `
-                        <div class="comment">
-                            <div class="comment-details">
-                                <img src="profile_images/${comment.profile_image_id}.png" alt="Profile Picture" class="profile-pic">
-                                <strong class="comment-username">${comment.username}</strong>
-                                <span class="comment-text">${comment.content}</span>
-                            </div>
-                            <span class="comment-date">${new Date(comment.created_at).toLocaleString()}</span>
-                        </div>
-                    `).join('');
-
-                        postElement.innerHTML = `
-                        <div class="post-header">
-                            <img src="profile_images/${post.profile_image_id}.png" alt="Profile Picture" class="profile-pic">
-                            <div>
-                                <strong>${post.username}</strong>
-                                <small>${post.category_name}</small>
-                            </div>
-                        </div>
-                        <div class="post-content">
-                            <h3>${post.title}</h3>
-                            <p>${post.content}</p>
-                            <small>Posted on: ${new Date(post.created_at).toLocaleString()}</small>
-                        </div>
-                        <div class="comments">
-                            <h4>Comments</h4>
-                            <div class="comments-list">
-                                ${commentsHTML}
-                            </div>
-                            <textarea placeholder="Add a comment..." class="comment-input" data-thread-id="${post.thread_id}"></textarea>
-                            <button class="btn-small" onclick="addComment(${post.thread_id})">Comment</button>
-                            <button class="btn-small btn-edit-post" onclick="openEditModal(${post.thread_id}, '${post.title}', '${post.content}')">Edit</button>
-
-                        </div>
-                    `;
-                        postsContainer.appendChild(postElement);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An unexpected error occurred while loading posts.');
-            });
-    }
-
-    function openEditModal(postId, title, content) {
-        console.log('Post ID:', postId);
-        document.getElementById('editModal').style.display = 'flex';
-        document.getElementById('editPostId').value = postId;
-        document.getElementById('editPostTitle').value = title;
-        document.getElementById('editPostContent').value = content;
-    }
-
-
-    function closeEditModal() {
-        document.getElementById('editModal').style.display = 'none';
-    }
-
-    function submitEdit() {
-        const postId = document.getElementById('editPostId').value;
-        const title = document.getElementById('editPostTitle').value;
-        const content = document.getElementById('editPostContent').value;
-
-        console.log('Sending data:', {postId, title, content});
-
-        if (!postId || !title.trim() || !content.trim()) {
-            alert('All fields are required.');
-            return;
-        }
-
-        fetch('edit_post.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `id=${postId}&title=${encodeURIComponent(title)}&content=${encodeURIComponent(content)}`
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Server response:', data);
-                if (data.success) {
-                    alert('Post updated successfully!');
-                    closeEditModal();
-                    loadPosts();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
             });
     }
 
@@ -238,8 +154,7 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
             .then(data => {
                 if (data.success) {
                     alert('Comment added successfully!');
-                    textarea.value = '';
-                    loadPosts();
+                    location.reload();
                 } else {
                     alert('Error: ' + data.message);
                 }
@@ -249,8 +164,6 @@ $categories = $db->query("SELECT id, name FROM categories")->fetchAll();
                 alert('An unexpected error occurred. Please try again.');
             });
     }
-
-    window.onload = loadPosts;
 </script>
 </body>
 </html>

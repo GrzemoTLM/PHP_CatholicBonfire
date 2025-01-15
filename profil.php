@@ -1,25 +1,19 @@
 <?php
 require_once 'check_session.php';
-require_once 'db.php';
+require_once 'Profile.php';
 
-$db = new Database();
+$profile = new Profile();
 $userId = $_SESSION['user_id'];
 
 try {
-    $userSql = "SELECT username, email, profile_image_id FROM users WHERE id = :id";
-    $stmt = $db->query($userSql, ['id' => $userId]);
-    $user = $stmt->fetch();
+    $user = $profile->getUserData($userId);
 
-    $postsSql = "SELECT COUNT(*) as post_count FROM threads WHERE user_id = :id";
-    $stmt = $db->query($postsSql, ['id' => $userId]);
-    $postCount = $stmt->fetch()['post_count'];
+    $postCount = $profile->getPostCount($userId);
 
-    $likesSql = "SELECT COUNT(*) as likes_given FROM intention_likes WHERE user_id = :id";
-    $stmt = $db->query($likesSql, ['id' => $userId]);
-    $likesGiven = $stmt->fetch()['likes_given'];
+    $likesGiven = $profile->getLikesGiven($userId);
 
     $profileImage = "profile_images/" . $user['profile_image_id'] . ".png";
-} catch (PDOException $e) {
+} catch (Exception $e) {
     die("Error fetching profile data: " . $e->getMessage());
 }
 ?>

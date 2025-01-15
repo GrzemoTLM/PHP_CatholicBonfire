@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'db.php';
+require_once 'Profile.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
@@ -12,18 +12,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $db = new Database();
+    $profile = new Profile();
 
     try {
-        $sql = "UPDATE users SET profile_image_id = :imageId WHERE id = :userId";
-        $db->query($sql, [
-            'imageId' => $imageId,
-            'userId' => $userId
-        ]);
+        $response = $profile->updateProfileImage($userId, $imageId);
 
-        echo json_encode(['success' => true]);
-    } catch (PDOException $e) {
+        if ($response['success']) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'message' => $response['message']]);
+        }
+    } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
+} else {
+    echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
 }
 ?>
