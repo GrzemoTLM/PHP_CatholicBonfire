@@ -1,5 +1,5 @@
 <?php
-require_once 'User.php';
+require_once '../classes/User.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email']);
@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $response = $user->login($email, $password);
 
     if ($response['success']) {
-        header('Location: mainboard.php');
+        header('Location: ../views/mainboard.php');
         exit();
     } else {
         header('Location: login.html?error=' . urlencode($response['message']));

@@ -1,6 +1,6 @@
 <?php
 require_once 'check_session.php';
-require_once 'Comments.php';
+require_once '../classes/Comments.php';
 
 header('Content-Type: application/json');
 

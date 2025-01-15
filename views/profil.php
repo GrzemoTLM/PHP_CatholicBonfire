@@ -1,6 +1,6 @@
 <?php
-require_once 'check_session.php';
-require_once 'Profile.php';
+require_once '../functions/check_session.php';
+require_once '../classes/Profile.php';
 
 $profile = new Profile();
 $userId = $_SESSION['user_id'];
@@ -12,7 +12,7 @@ try {
 
     $likesGiven = $profile->getLikesGiven($userId);
 
-    $profileImage = "profile_images/" . $user['profile_image_id'] . ".png";
+    $profileImage = "../profile_images/" . $user['profile_image_id'] . ".png";
 } catch (Exception $e) {
     die("Error fetching profile data: " . $e->getMessage());
 }
@@ -23,7 +23,7 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Profile - Catholic Campfire</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 <div class="content">
@@ -44,7 +44,7 @@ try {
         <h2>Select Profile Picture</h2>
         <div class="image-grid">
             <?php for ($i = 1; $i <= 10; $i++): ?>
-                <img src="profile_images/<?= $i ?>.png" alt="Image <?= $i ?>" class="profile-option"
+                <img src="../profile_images/<?= $i ?>.png" alt="Image <?= $i ?>" class="profile-option"
                      onclick="updateProfileImage(<?= $i ?>)">
             <?php endfor; ?>
         </div>
@@ -66,7 +66,7 @@ try {
     }
 
     function updateProfileImage(imageId) {
-        fetch('update_profile_image.php', {
+        fetch('../functions/update_profile_image.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

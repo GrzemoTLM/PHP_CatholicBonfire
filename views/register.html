@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Catholic Campfire</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 <div class="form-container">
@@ -14,7 +14,7 @@
     <?php elseif (!empty($_GET['success'])): ?>
     <div class="success-message"><?= htmlspecialchars($_GET['success']) ?></div>
     <?php endif; ?>
-    <form action="register_process.php" method="POST">
+    <form action="../functions/register_process.php" method="POST">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>
 

@@ -1,6 +1,6 @@
 <?php
-require_once 'check_session.php';
-require_once 'Intentions.php';
+require_once '../functions/check_session.php';
+require_once '../classes/Intentions.php';
 
 $intentionsClass = new Intentions();
 
@@ -18,7 +18,7 @@ $intentions = $response['intentions'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prayer Intentions - Catholic Campfire</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 <div class="content">
@@ -64,7 +64,7 @@ $intentions = $response['intentions'];
             return;
         }
 
-        fetch('add_prayer_intention.php', {
+        fetch('../functions/add_prayer_intention.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -87,7 +87,7 @@ $intentions = $response['intentions'];
     }
 
     function offerPrayer(intentionId) {
-        fetch('offer_prayer.php', {
+        fetch('../functions/offer_prayer.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
